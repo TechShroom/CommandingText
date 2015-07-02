@@ -41,6 +41,13 @@ util {
     javaVersion = '1.8'
 }
 
+repositories {
+    maven {
+        name = "sonatype"
+        url = "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+}
+
 configurations.apt {
    resolutionStrategy {
      // fail eagerly on version conflict (includes transitive dependencies)
