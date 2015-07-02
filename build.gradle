@@ -14,6 +14,10 @@ buildscript {
             name = "sonatype"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
+        maven {
+            name = "techshroom"
+            url "http://techshroom.github.io/downloads/maven"
+        }
     }
     configurations.all {
         resolutionStrategy {
@@ -37,7 +41,7 @@ util {
     javaVersion = '1.8'
 }
 
-configurations.all {
+configurations.apt {
    resolutionStrategy {
      // fail eagerly on version conflict (includes transitive dependencies)
      // e.g. multiple different versions of the same dependency (group and name are equal)
@@ -107,18 +111,6 @@ minecraft {
     else
     {
         runDir = "run"
-    }
-}
-
-sourceSets {
-    main {
-        def root = project.projectDir
-        scala {
-            srcDir new File(root, "src")
-        }
-        resources {
-            srcDir new File(root, "resources")
-        }
     }
 }
 
