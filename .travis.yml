@@ -1,0 +1,6 @@
+language: java
+jdk:
+- oraclejdk8
+sudo: false
+env:
+  secure: Sx+UTEqxv5ZuvM/A5TunfLttbUHdzFp5kzS79TetNXqwmurTQS+d80dASTuE2rgzNfsFAokCRU9ghx/WBjXiZ1vxtD5paQExM111L5fQk42ydv699gUN+FD+V4z8WBgcyuc1RDLHvHO1itw3q5LxvOjxgtbm76VDRkRNDSqpFpM=
