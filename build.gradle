@@ -18,6 +18,10 @@ buildscript {
             name = "techshroom"
             url "http://techshroom.github.io/downloads/maven"
         }
+        maven {
+            name = "VanillaGradle"
+            url = "http://repo.minecrell.net/snapshots"
+        }
     }
     configurations.all {
         resolutionStrategy {
@@ -26,7 +30,7 @@ buildscript {
     }
     dependencies {
         classpath group: 'com.techshroom', name: 'Aversion', version: '1.0.1-SNAPSHOT'
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'net.minecrell:VanillaGradle:3.0-SNAPSHOT'
     }
 }
 
@@ -35,7 +39,7 @@ apply plugin: 'eclipse'
 apply plugin: 'aversion-util'
 apply plugin: 'aversion-maven'
 apply plugin: 'aversion-apt'
-apply plugin: 'forge'
+apply plugin: 'net.minecrell.vanilla.base'
 
 util {
     javaVersion = '1.8'
@@ -45,6 +49,10 @@ repositories {
     maven {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+    maven {
+        name = "techshroom"
+        url "http://techshroom.github.io/downloads/maven"
     }
 }
 
@@ -80,6 +88,10 @@ dependencies {
     addAPTReq name: 'javax.inject'
     addAPTReq name: 'velocity'
 
+    compile 'com.mumfrey:liteloader:1.8-mcpnames'
+    compile 'net.minecraft:launchwrapper:1.12'
+    compile project(':MacrosAPI')
+
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
@@ -94,42 +106,26 @@ configFile.withReader {
     project.ext.config = new ConfigSlurper().parse prop
 }
 
-repositories {
-    // ???
-}
-
-configurations {
-    deployerJars
-}
-
-dependencies {
-    // ???
-}
-
 def build_number = project.hasProperty("manualbuildnum") ? project.manualbuildnum : (Integer.parseInt(System.getenv("BUILD_NUMBER") ?: "1")).toString()
 version = "${project.config.mod.version}."+build_number
 
 minecraft {
-    version = config.mc.version+"-"+config.forge.version
-    if (file('../run').exists())
-    {
-        runDir = "../run"
-    }
-    else
-    {
-        runDir = "run"
-    }
+    version = project.config.mc.version
+    mappings = "snapshot_20150606"
+    runDir = "run"
 }
+reobf.setSrgMcp()
 
 task updateVersion(type: Copy) {
     // Replace tokens
     from(sourceSets.main.java.srcDirs)
     into 'build/sources/java'
     filter(ReplaceTokens, tokens: [
-            'VERSION'      : config.mod.version,
-            'BUILD_NUMBER' : build_number,
-            'MC_VERSION'   : config.mc.version,
-            'FORGE_VERSION': config.forge.version
+        'NAME'         : name,
+        'VERSION'      : config.mod.version,
+        'BUILD_NUMBER' : build_number,
+        'MC_VERSION'   : config.mc.version,
+        'LL_VERSION'   : config.liteloader.version
     ])
 }
 
@@ -142,10 +138,11 @@ processResources {
     from(sourceSets.main.resources.srcDirs) {
         include '**.info'
         filter(ReplaceTokens, tokens: [
-                'VERSION'      : config.mod.version,
-                'BUILD_NUMBER' : build_number,
-                'MC_VERSION'   : config.mc.version,
-                'FORGE_VERSION': config.forge.version
+            'NAME'         : name,
+            'VERSION'      : config.mod.version,
+            'BUILD_NUMBER' : build_number,
+            'MC_VERSION'   : config.mc.version,
+            'LL_VERSION'   : config.liteloader.version
         ])
     }
     // Copy everything else
@@ -155,6 +152,10 @@ processResources {
 }
 
 compileJava.dependsOn updateVersion
+
+tasks.withType(Jar).each {
+    it.extension 'litemod'
+}
 
 task sourceJar(type: Jar) {
     from sourceSets.main.allSource
@@ -166,8 +167,50 @@ task deobfJar(type: Jar) {
     from sourceSets.main.output
     classifier = 'dev'
     version = "${project.minecraft.version}-${project.version}"
-    manifest {
-        attributes 'FMLCorePlugin': 'codechicken.core.launch.DepLoader'
-        attributes 'FMLCorePluginContainsFMLMod': 'true'
+}
+
+['MacrosAPI', 'CommonLib'].each { project(it) {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'aversion-util'
+    apply plugin: 'net.minecrell.vanilla.base'
+
+    util {
+        javaVersion = '1.6'
     }
+
+    repositories {
+        maven {
+            name = "techshroom"
+            url "http://techshroom.github.io/downloads/maven"
+        }
+    }
+
+    sourceSets {
+        main.java {
+            srcDir file('java')
+        }
+        main.resources {
+            srcDir file('res')
+        }
+    }
+
+    minecraft {
+        version = rootProject.config.mc.version
+        mappings = "snapshot_20150606"
+    }
+
+    dependencies {
+        compile 'com.mumfrey:liteloader:1.8-mcpnames'
+        compile 'net.minecraft:launchwrapper:1.12'
+    }
+}}
+project(':MacrosAPI') {
+    dependencies {
+        compile project(':CommonLib')
+    }
+}
+allprojects {
+    // ffs
+    makeStart.enabled = true
 }

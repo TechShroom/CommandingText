@@ -1,0 +1,6 @@
+[submodule "MacrosAPI"]
+	path = MacrosAPI
+	url = git@git.voxelmodpack.com:macros/MacrosAPI.git
+[submodule "CommonLib"]
+	path = CommonLib
+	url = git@git.voxelmodpack.com:macros/CommonLib.git
