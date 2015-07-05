@@ -1,7 +1,7 @@
 # CommandingText
-Macros Module For Command Block Text
+Macros Module For Clipboard Text
 
-Now you can actually render stuff in a command block screen with Macros!
 
 # How Do I Do This?
-`// TODO`
+`COPY(<text>)` - copies `text` to the clipboard
+`CLIPBOARD` - global variable of the clipboard contents
